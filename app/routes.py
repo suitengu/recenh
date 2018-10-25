@@ -24,12 +24,6 @@ def index():
     return render_template('index.html', form=form)
 
 
-@app.route('/css/<path:path>')
-def send_css(path):
-    css_path = os.path.join(app.base_path, 'css')
-    return send_from_directory(css_path, path)
-
-
 @app.route('/recs/<username>')
 def get_recs(username):
     # get all users the user follows
