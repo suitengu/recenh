@@ -7,6 +7,7 @@ from flask import Flask, flash, request, redirect, url_for
 from flask import send_from_directory
 from flask import render_template
 from werkzeug.utils import secure_filename
+from bs4 import BeautifulSoup
 
 HEADERS = {
     'UserAgent': 'LastFM Recommendations Enhanced Tool', 
@@ -25,13 +26,20 @@ def index():
 
 
 @app.route('/recs/<username>')
-def get_recs(username):
-    # get all users the user follows
-    following_list = get_following(username)
+def get_recs(username: str, use_followers=False, use_neighbours=True):
+    neighbours_list = []
+    following_list = []
+    if use_followers:
+        # get all users the user follows
+        following_list = get_following(username)
+    if use_neighbours:
+        # get all the user's neighbours
+        neighbours_list = get_neighbours(username)
+    user_list = list(set().union(following_list, neighbours_list))
     # get top artists from each of them
     user_top_artists = {}
-    for user in following_list:
-        user_top_artists[user] = get_top_artists(user, 25)
+    for user in user_list:
+        user_top_artists[user] = get_top_artists(user, 50)
     merged_artist_list = list(set().union(*list(user_top_artists.values())))
     user_artist_list = get_top_artists(username, limit=None)
     # subtract user top artists from the list, though the 'long tail' is still
@@ -40,8 +48,12 @@ def get_recs(username):
     return render_template('recs.html', recs=recs_list)
 
 
-
-def get_following(username):
+def get_following(username: str) -> list:
+    """
+    Get the list of users the specified user follows
+    @param username -- the username whose following list we will get
+    @return list of the following usernames
+    """
     endpoint_url = '{}?method=user.getfriends&user={}&api_key={}&format=json'.format(LFM_API_URL,
             username, app.config['LFM_API_KEY'])
     lfm_res = requests.get(endpoint_url, headers=HEADERS)
@@ -50,6 +62,22 @@ def get_following(username):
     lfm_res_dict = json.loads(lfm_res.text)
     following_list = [user['name'] for user in lfm_res_dict['friends']['user']]
     return following_list
+
+
+def get_neighbours(username: str) -> list:
+    """
+    Get the list of users who are neighbours of the specified user
+    @param username -- the username whose neighbours we will get
+    @return list of the neighbours' usernames
+    """
+    url = 'https://www.last.fm/user/{}/neighbours'.format(username)
+    res = requests.get(url)
+    if res.status_code != requests.codes.ok:
+        abort('request error')
+    soup = BeautifulSoup(res.text, 'html.parser')
+    user_link_list = soup.select('a.user-list-link')
+    user_list = [user_link.text for user_link in user_link_list]
+    return user_list
 
 
 def get_top_artists(username, limit=50):
