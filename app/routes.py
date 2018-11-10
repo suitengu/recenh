@@ -39,7 +39,7 @@ def get_recs(username: str, use_followers=False, use_neighbours=True):
     # get top artists from each of them
     user_top_artists = {}
     for user in user_list:
-        user_top_artists[user] = get_top_artists(user, 50)
+        user_top_artists[user] = get_top_artists(user, 15)
     merged_artist_list = list(set().union(*list(user_top_artists.values())))
     user_artist_list = get_top_artists(username, limit=None)
     # subtract user top artists from the list, though the 'long tail' is still
@@ -74,6 +74,8 @@ def get_neighbours(username: str) -> list:
     res = requests.get(url)
     if res.status_code != requests.codes.ok:
         abort('request error')
+    # there's no API route for neighbours, good thing this isn't hard to do with
+    # CSS selectors!
     soup = BeautifulSoup(res.text, 'html.parser')
     user_link_list = soup.select('a.user-list-link')
     user_list = [user_link.text for user_link in user_link_list]
