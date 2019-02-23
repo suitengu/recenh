@@ -2,7 +2,9 @@
 {% block content %}
 <ul>
   {% for r in recs %}
-  <li><a href="https://www.last.fm/music/{{r.replace(' ', '+')}}">{{r}}</a></li>
+    {% set url_r = r.replace(' ', '+') -%}
+    {% set url_r = url_r.replace('/', '%2f') -%}
+    <li><a href="https://www.last.fm/music/{{url_r}}">{{r}}</a></li>
   {% endfor %}
 </ul>
 {% endblock %}
