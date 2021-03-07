@@ -4,3 +4,7 @@ itsdangerous==0.24
 Jinja2==2.10
 MarkupSafe==1.0
 Werkzeug==0.14.1
+setuptools==48.0.0
+requests==2.25.1
+flask-wtf=0.14.3
+beautifulsoup4==4.9.3

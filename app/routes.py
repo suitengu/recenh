@@ -3,7 +3,7 @@ import os
 import requests
 from app import app
 from app.forms import UsernameForm
-from flask import Flask, flash, request, redirect, url_for
+from flask import Flask, flash, request, redirect, url_for, abort
 from flask import send_from_directory
 from flask import render_template
 from werkzeug.utils import secure_filename
@@ -82,7 +82,7 @@ def get_neighbours(username: str) -> list:
     return user_list
 
 
-def get_top_artists(username, limit=50):
+def get_top_artists(username, limit=8):
     get_all = False
     if limit is None:
         limit = 1000
